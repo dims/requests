@@ -1,6 +1,7 @@
 import errno
 import logging
 import sys
+import traceback
 import warnings
 
 from socket import error as SocketError, timeout as SocketTimeout
@@ -159,6 +160,7 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
         self.retries = retries
 
         self.pool = self.QueueCls(maxsize)
+        self.pool_where = ''.join(traceback.format_stack())
         self.block = block
 
         self.proxy = _proxy
@@ -255,6 +257,9 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
             log.warning(
                 "Connection pool is full, discarding connection: %s" %
                 self.host)
+            log.warning(
+                "Connection pool was created at %s" %
+                self.pool_where)
 
         # Connection never got put back into the pool, close it.
         if conn:
